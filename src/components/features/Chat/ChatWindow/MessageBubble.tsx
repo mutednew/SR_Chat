@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { IMessage } from '@/types/messageType'; // Или интерфейс из API
@@ -8,7 +8,7 @@ interface MessageBubbleProps {
     isMe: boolean;
 }
 
-export const MessageBubble = ({ msg, isMe }: MessageBubbleProps) => {
+export const MessageBubble = memo(({ msg, isMe }: MessageBubbleProps) => {
     return (
         <div
             className={`flex w-full ${isMe ? 'justify-end' : 'justify-start items-end gap-3'}`}
@@ -37,4 +37,4 @@ export const MessageBubble = ({ msg, isMe }: MessageBubbleProps) => {
             </div>
         </div>
     );
-};
+});

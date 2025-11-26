@@ -1,19 +1,29 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Layout, Button, Modal, Input, message, Spin } from 'antd';
+import { Layout, Button, App, Spin } from 'antd';
 import { LogoutOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/features/authSlice';
 import { useRouter } from 'next/navigation';
 import { useCreateChatMutation } from '@/store/services/chatsApi';
 import ChatList from "@/components/features/Chat/ChatList";
-import {socket} from "@/lib/socket";
-import {setOnlineUsers} from "@/store/features/onlineSlice";
+import { socket } from "@/lib/socket";
+import { setOnlineUsers } from "@/store/features/onlineSlice";
+import dynamic from "next/dynamic";
 
 const { Sider, Content } = Layout;
 
+const CreateChatModal = dynamic(
+    () => import('@/components/features/Chat/CreateChatModal'),
+    {
+        ssr: false,
+        loading: () => null
+    }
+);
+
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
+    const { message } = App.useApp();
     const dispatch = useAppDispatch();
     const router = useRouter();
     const { token, user } = useAppSelector((state) => state.auth);
@@ -31,7 +41,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     useEffect(() => {
         if (token && user) {
             socket.auth = { token };
-
             socket.connect();
 
             socket.on('online_users', (onlineIds: string[]) => {
@@ -107,19 +116,16 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                 </Content>
             </Layout>
 
-            <Modal
-                title="Новый чат"
-                open={isModalOpen}
-                onOk={handleCreateChat}
-                onCancel={() => setIsModalOpen(false)}
-                confirmLoading={isCreating}
-            >
-                <Input
-                    placeholder="Введите Email пользователя"
-                    value={emailToInvite}
-                    onChange={e => setEmailToInvite(e.target.value)}
+            {isModalOpen && (
+                <CreateChatModal
+                    open={isModalOpen}
+                    onOk={handleCreateChat}
+                    onCancel={() => setIsModalOpen(false)}
+                    confirmLoading={isCreating}
+                    email={emailToInvite}
+                    setEmail={setEmailToInvite}
                 />
-            </Modal>
+            )}
         </Layout>
     );
 }

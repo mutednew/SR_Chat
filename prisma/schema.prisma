@@ -17,6 +17,8 @@ model User {
 
   messages Message[]
   chats    Chat[]
+
+  @@index([email])
 }
 
 model Chat {
@@ -29,6 +31,8 @@ model Chat {
 
   users    User[]
   messages Message[]
+
+  @@index([updatedAt])
 }
 
 model Message {
@@ -41,4 +45,6 @@ model Message {
 
   senderId String
   sender   User   @relation(fields: [senderId], references: [id])
+
+  @@index([senderId])
 }
