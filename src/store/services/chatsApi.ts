@@ -1,19 +1,15 @@
 import { api } from './api';
 import { socket } from '@/lib/socket';
-import { IMessage } from "@/types/messageType";
 import { IChat } from "@/types/chatType";
+import { IMessage } from "@/types/messageType";
 
 export const chatsApi = api.injectEndpoints({
     endpoints: (builder) => ({
 
         getChats: builder.query<IChat[], void>({
-            query: () => '/chats',
-            providesTags: ['Chat'],
-
-            async onCacheEntryAdded(
-                arg,
-                { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
-            ) {
+            query: () => "/chats",
+            providesTags: ["Chat"],
+            async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved }) {
                 try {
                     await cacheDataLoaded;
 
@@ -24,7 +20,6 @@ export const chatsApi = api.injectEndpoints({
                             if (chatToUpdate) {
                                 chatToUpdate.messages = [newMessage];
                                 chatToUpdate.updatedAt = new Date().toISOString();
-
                                 draft.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
                             }
                         });
@@ -34,57 +29,93 @@ export const chatsApi = api.injectEndpoints({
                     await cacheEntryRemoved;
                     socket.off("receive_message", listener);
                 } catch {}
-            }
+            },
         }),
 
         getMessages: builder.query<IMessage[], string>({
             query: (chatId) => `/messages?chatId=${chatId}`,
-            providesTags: (result, error, chatId) => [{ type: 'Message', id: chatId }],
-            async onCacheEntryAdded(
-                chatId,
-                { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
-            ) {
+            providesTags: (result, error, chatId) => [{ type: "Message", id: chatId }],
+            async onCacheEntryAdded(chatId, { updateCachedData, cacheDataLoaded, cacheEntryRemoved }) {
                 try {
                     await cacheDataLoaded;
-                    socket.emit('join_chat', chatId);
+                    socket.emit("join_chat", chatId);
 
                     const listener = (newMessage: IMessage) => {
                         if (newMessage.chatId !== chatId) return;
                         updateCachedData((draft) => {
-                            draft.push(newMessage);
+                            if (!draft.find(m => m.id === newMessage.id)) {
+                                draft.push(newMessage);
+                            }
                         });
                     };
 
-                    socket.on('receive_message', listener);
+                    socket.on("receive_message", listener);
                     await cacheEntryRemoved;
-                    socket.off('receive_message', listener);
+                    socket.off("receive_message", listener);
                 } catch {}
             },
         }),
 
-        sendMessage: builder.mutation<IMessage, { chatId: string; content: string; senderId: string }>({
+        getMoreMessages: builder.query<IMessage[], { chatId: string; cursor: string }>({
+            query: ({ chatId, cursor }) => `/messages?chatId=${chatId}&cursor=${cursor}`,
+            async onQueryStarted({ chatId }, { queryFulfilled, dispatch }) {
+                try {
+                    const { data: olderMessages } = await queryFulfilled;
+                    if (olderMessages.length > 0) {
+                        dispatch(
+                            chatsApi.util.updateQueryData("getMessages", chatId, (draft) => {
+                                const uniqueOlderMessages = olderMessages.filter(
+                                    (oldMsg) => !draft.find((existingMsg) => existingMsg.id === oldMsg.id)
+                                );
+                                draft.unshift(...uniqueOlderMessages);
+                            })
+                        );
+                    }
+                } catch {}
+            }
+        }),
+
+        sendMessage: builder.mutation<IMessage, { chatId: string; content: string }>({
             query: (body) => ({
-                url: '/messages',
-                method: 'POST',
+                url: "/messages",
+                method: "POST",
                 body,
             }),
-            async onQueryStarted(arg, { queryFulfilled }) {
+            async onQueryStarted({ chatId }, { queryFulfilled, dispatch }) {
                 try {
                     const { data: savedMessage } = await queryFulfilled;
-                    socket.emit('send_message', savedMessage);
+
+                    dispatch(
+                        chatsApi.util.updateQueryData("getMessages", chatId, (draft) => {
+                            draft.push(savedMessage);
+                        })
+                    );
+
+                    dispatch(
+                        chatsApi.util.updateQueryData("getChats", undefined, (draft) => {
+                            const chatToUpdate = draft.find((c) => c.id === chatId);
+                            if (chatToUpdate) {
+                                chatToUpdate.messages = [savedMessage];
+                                chatToUpdate.updatedAt = new Date().toISOString();
+                                draft.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+                            }
+                        })
+                    );
+
+                    socket.emit("send_message", savedMessage);
                 } catch (err) {
-                    console.error('Error sending message', err);
+                    console.error("Error sending message", err);
                 }
             }
         }),
 
-        createChat: builder.mutation<IChat, { email: string; currentUserId: string }>({
+        createChat: builder.mutation<IChat, { email: string }>({
             query: (body) => ({
-                url: '/chats',
-                method: 'POST',
+                url: "/chats",
+                method: "POST",
                 body,
             }),
-            invalidatesTags: ['Chat'],
+            invalidatesTags: ["Chat"],
         }),
 
     }),
@@ -94,5 +125,6 @@ export const {
     useGetChatsQuery,
     useGetMessagesQuery,
     useSendMessageMutation,
-    useCreateChatMutation
+    useCreateChatMutation,
+    useLazyGetMoreMessagesQuery
 } = chatsApi;

@@ -1,32 +1,22 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { authService } from "@/services/auth.service";
+import { registerSchema } from "@/lib/validators";
+import { z } from "zod";
 
 export async function POST(req: Request) {
     try {
-        const { email, password, name } = await req.json();
+        const body = await req.json();
 
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+        const { email, password, name } = registerSchema.parse(body);
+
+        const data = await authService.register(email, password, name);
+
+        return NextResponse.json(data);
+    } catch (err: any) {
+        if (err instanceof z.ZodError) {
+            return NextResponse.json({ error: err.issues[0].message }, { status: 400 });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await prisma.user.create({
-            data: {
-                email,
-                name,
-                password: hashedPassword,
-                avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
-            }
-        });
-
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: '7d' });
-
-        return NextResponse.json({ user, token });
-    } catch (e) {
-        return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
+        return NextResponse.json({ error: err.message }, { status: 401 });
     }
 }

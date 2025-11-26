@@ -29,14 +29,21 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }, []);
 
     useEffect(() => {
-        if (user?.id) {
-            socket.emit('register_user', user.id);
+        if (token && user) {
+            socket.auth = { token };
 
-            socket.on("online_users", (onlineIds: string[]) => {
+            socket.connect();
+
+            socket.on('online_users', (onlineIds: string[]) => {
                 dispatch(setOnlineUsers(onlineIds));
             });
+
+            return () => {
+                socket.off('online_users');
+                socket.disconnect();
+            };
         }
-    }, [user?.id, dispatch]);
+    }, [token, user, dispatch]);
 
     useEffect(() => {
         if (mounted && !token) {
@@ -54,7 +61,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         try {
             await createChat({
                 email: emailToInvite,
-                currentUserId: user.id
             }).unwrap();
             message.success('Чат успешно создан!');
             setIsModalOpen(false);

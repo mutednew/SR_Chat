@@ -16,6 +16,7 @@
     "@reduxjs/toolkit": "^2.11.0",
     "antd": "^5.29.1",
     "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "icons": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
@@ -24,7 +25,8 @@
     "react-dom": "19.2.0",
     "react-redux": "^9.2.0",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
