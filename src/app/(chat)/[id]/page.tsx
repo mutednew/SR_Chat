@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import ChatWindow from "@/components/features/Chat/ChatWindow";
+import ChatWindow from "@/components/features/Chat/ChatWindow/ChatWindow";
 
 export default function ChatPage() {
     const params = useParams();
