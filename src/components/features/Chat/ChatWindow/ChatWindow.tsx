@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Input, Button, Spin, Empty, Badge, Avatar } from 'antd';
-import { SendOutlined, UserOutlined, LoadingOutlined } from '@ant-design/icons';
+import React, { useState, useCallback } from 'react';
+import { Spin, Empty, Avatar, Badge } from 'antd';
+import {LoadingOutlined, UserOutlined} from '@ant-design/icons';
 import { useGetChatsQuery, useGetMessagesQuery, useSendMessageMutation, useLazyGetMoreMessagesQuery } from '@/store/services/chatsApi';
 import { useAppSelector } from "@/store/hooks";
 
 import { useChatScroll } from '@/hooks/useChatScroll';
-import {MessageBubble} from "@/components/features/Chat/ChatWindow/MessageBubble";
+import { MessageBubble } from "@/components/features/Chat/ChatWindow/MessageBubble";
+import { MessageInput } from "@/components/features/Chat/ChatWindow/MessageInput";
 
 interface ChatWindowProps {
     chatId: string;
@@ -24,14 +25,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
     const [triggerGetMore, { isFetching: isFetchingMore }] = useLazyGetMoreMessagesQuery();
     const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
 
-    const [inputText, setInputText] = useState('');
     const [hasMore, setHasMore] = useState(true);
 
-    useEffect(() => {
-        setHasMore(true);
-    }, [chatId]);
-
-    const loadMore = async () => {
+    const loadMore = useCallback(async () => {
         if (messages.length > 0) {
             const oldestMessageId = messages[0].id;
             const result = await triggerGetMore({ chatId, cursor: oldestMessageId });
@@ -39,7 +35,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                 setHasMore(false);
             }
         }
-    };
+    }, [messages, chatId, triggerGetMore]);
 
     const { chatContainerRef, messagesEndRef, observerTarget } = useChatScroll(
         messages,
@@ -49,10 +45,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
         loadMore
     );
 
-    const handleSend = async () => {
-        if (!inputText.trim() || !CURRENT_USER_ID) return;
-        await sendMessage({ chatId, content: inputText });
-        setInputText('');
+    const handleSend = async (content: string) => {
+        if (!content.trim() || !CURRENT_USER_ID) return;
+        await sendMessage({ chatId, content });
     };
 
     const currentChat = chats?.find(c => c.id === chatId);
@@ -65,7 +60,6 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
 
     return (
         <div className="flex flex-col h-full bg-white">
-            {}
             <div className="h-16 border-b border-gray-200 flex items-center px-6 bg-white shadow-sm z-10 gap-3">
                 <Badge dot color={isOnline ? "green" : "gray"} offset={[-6, 32]}>
                     <Avatar src={otherUser?.avatar} icon={<UserOutlined />} className="bg-blue-500" size="large" />
@@ -74,7 +68,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                     <h3 className="font-bold text-gray-800 m-0 text-base">
                         {currentChat?.name || otherUser?.name || 'Unknown User'}
                     </h3>
-                    <span className={`text-xs ${isOnline ? 'text-green-500 font-medium' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${isOnline ? "text-green-500 font-medium" : "text-gray-400"}`}>
                         {isOnline ? 'Online' : 'Offline'}
                     </span>
                 </div>
@@ -92,12 +86,12 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                 )}
 
                 {!hasMore && messages.length > 0 && (
-                    <div className="text-center text-xs text-gray-400 py-4">Начало переписки</div>
+                    <div className="text-center text-xs text-gray-400 py-4">Start chatting</div>
                 )}
 
                 {messages.length === 0 ? (
                     <div className="h-full flex items-center justify-center opacity-50">
-                        <Empty description="Нет сообщений. Напишите первым!" />
+                        <Empty description="No messages. Be the first to write!" />
                     </div>
                 ) : (
                     <div className="flex flex-col gap-3">
@@ -113,27 +107,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                 )}
             </div>
 
-            <div className="p-4 bg-white border-t border-gray-200">
-                <div className="flex gap-2">
-                    <Input
-                        size="large"
-                        placeholder="Напишите сообщение..."
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        onPressEnter={handleSend}
-                        className="rounded-full"
-                    />
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        size="large"
-                        icon={<SendOutlined />}
-                        onClick={handleSend}
-                        className="flex-shrink-0 bg-blue-600"
-                        loading={isSending}
-                    />
-                </div>
-            </div>
+            <MessageInput onSend={handleSend} isLoading={isSending} />
         </div>
     );
 }

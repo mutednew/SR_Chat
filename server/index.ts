@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 import { setupSocketHandlers } from "./socketHandler";
 
 
-const dev = process.env.NODE_ENV !== 'production';
+const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
 

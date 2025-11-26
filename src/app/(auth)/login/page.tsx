@@ -1,40 +1,55 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Tabs } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
-import { useAppDispatch } from '@/store/hooks';
-import { setCredentials } from '@/store/features/authSlice';
+import React, { useState } from "react";
+import { Form, Input, Button, Card, Typography, Tabs, App } from "antd";
+import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/store/features/authSlice";
 
 const { Title } = Typography;
+
+interface RegisterFormValues {
+    email: string;
+    password: string;
+    name: string;
+}
+type FormValues = RegisterFormValues | LoginFormValues;
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const dispatch = useAppDispatch();
     const router = useRouter();
 
-    const handleSubmit = async (values: any, isRegister: boolean) => {
+    const { message: messageApi } = App.useApp();
+
+    const [loginForm] = Form.useForm();
+    const [registerForm] = Form.useForm();
+
+    const handleSubmit = async (values: FormValues, isRegister: boolean) => {
         setLoading(true);
+        isRegister ? registerForm.setFields([]) : loginForm.setFields([]);
+
         try {
-            const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+            const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
 
             const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),
             });
 
             const data = await res.json();
 
-            if (!res.ok) throw new Error(data.error || 'Something went wrong');
+            if (!res.ok) throw new Error(data.error || "Something went wrong");
 
             dispatch(setCredentials({ user: data.user, token: data.token }));
-            message.success(isRegister ? 'Registered successfully!' : 'Welcome back!');
 
-            router.push('/');
+            messageApi.success(isRegister ? "Registered successfully!" : 'Welcome back!');
+
+            router.push("/");
         } catch (error: any) {
-            message.error(error.message);
+            messageApi.error(error.message);
         } finally {
             setLoading(false);
         }
@@ -48,17 +63,21 @@ export default function LoginPage() {
                 </div>
 
                 <Tabs
-                    defaultActiveKey="1"
+                    defaultActiveKey="2"
                     items={[
                         {
-                            key: '1',
-                            label: 'Login',
+                            key: "1",
+                            label: "Login",
                             children: (
-                                <Form onFinish={(vals) => handleSubmit(vals, false)} layout="vertical">
-                                    <Form.Item name="email" rules={[{ required: true, type: 'email' }]}>
+                                <Form
+                                    form={loginForm}
+                                    onFinish={(vals) => handleSubmit(vals, false)}
+                                    layout="vertical"
+                                >
+                                    <Form.Item name="email" rules={[{ required: true, type: "email", message: "Enter email!" }]}>
                                         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
                                     </Form.Item>
-                                    <Form.Item name="password" rules={[{ required: true }]}>
+                                    <Form.Item name="password" rules={[{ required: true, message: "Enter password!" }]}>
                                         <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
                                     </Form.Item>
                                     <Button type="primary" htmlType="submit" block size="large" loading={loading}>
@@ -68,17 +87,21 @@ export default function LoginPage() {
                             ),
                         },
                         {
-                            key: '2',
-                            label: 'Register',
+                            key: "2",
+                            label: "Register",
                             children: (
-                                <Form onFinish={(vals) => handleSubmit(vals, true)} layout="vertical">
-                                    <Form.Item name="name" rules={[{ required: true }]}>
+                                <Form
+                                    form={registerForm}
+                                    onFinish={(vals) => handleSubmit(vals, true)}
+                                    layout="vertical"
+                                >
+                                    <Form.Item name="name" rules={[{ required: true, message: "Enter name!" }]}>
                                         <Input prefix={<UserOutlined />} placeholder="Name" size="large" />
                                     </Form.Item>
-                                    <Form.Item name="email" rules={[{ required: true, type: 'email' }]}>
+                                    <Form.Item name="email" rules={[{ required: true, type: "email", message: "Enter email!" }]}>
                                         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
                                     </Form.Item>
-                                    <Form.Item name="password" rules={[{ required: true }]}>
+                                    <Form.Item name="password" rules={[{ required: true, message: "Enter password!" }]}>
                                         <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
                                     </Form.Item>
                                     <Button type="primary" htmlType="submit" block size="large" loading={loading}>

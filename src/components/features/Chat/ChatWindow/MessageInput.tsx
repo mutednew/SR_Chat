@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, type InputRef } from 'antd';
-import { SendOutlined } from '@ant-design/icons';
+import React, { useState, useRef, useEffect } from "react";
+import { Input, Button, type InputRef } from "antd";
+import { SendOutlined } from "@ant-design/icons";
 
 interface MessageInputProps {
     onSend: (text: string) => void;
@@ -34,7 +34,7 @@ export const MessageInput = ({ onSend, isLoading }: MessageInputProps) => {
                 <Input
                     ref={inputRef}
                     size="large"
-                    placeholder="Напишите сообщение..."
+                    placeholder="Send message..."
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onPressEnter={handleSend}

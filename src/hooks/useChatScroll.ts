@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { IMessage } from "@/types/messageType";
 
 export const useChatScroll = (
-    messages: any[],
+    messages: IMessage[],
     isFetching: boolean,
     chatId: string,
     hasMore: boolean,
@@ -50,7 +51,7 @@ export const useChatScroll = (
         }
 
         if (currentLastMessageId !== prevLastMessageIdRef.current) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             prevLastMessageIdRef.current = currentLastMessageId;
         }
 

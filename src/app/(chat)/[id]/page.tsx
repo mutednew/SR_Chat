@@ -1,6 +1,5 @@
-'use client';
+"use client";
 
-import React from 'react';
 import { useParams } from 'next/navigation';
 import ChatWindow from "@/components/features/Chat/ChatWindow/ChatWindow";
 

@@ -1,5 +1,5 @@
-import { api } from './api';
-import { socket } from '@/lib/socket';
+import { api } from "./api";
+import { socket } from "@/lib/socket";
 import { IChat } from "@/types/chatType";
 import { IMessage } from "@/types/messageType";
 

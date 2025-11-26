@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db';
-import bcrypt from 'bcryptjs';
-import { generateToken } from '@/lib/jwt';
+import { prisma } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { generateToken } from "@/lib/jwt";
 
 export const authService = {
     async register(email: string, password: string, name: string) {

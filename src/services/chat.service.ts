@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { prisma } from "@/lib/db";
 
 export const chatService = {
     async getUserChats(currentUserId: string) {

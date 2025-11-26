@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { chatService } from '@/services/chat.service';
-import { getUserIdFromHeader } from '@/lib/jwt';
-import { createChatSchema } from '@/lib/validators';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { chatService } from "@/services/chat.service";
+import { getUserIdFromHeader } from "@/lib/jwt";
+import { createChatSchema } from "@/lib/validators";
+import { z } from "zod";
 
 export async function GET(req: Request) {
     try {
@@ -12,8 +12,8 @@ export async function GET(req: Request) {
 
         return NextResponse.json(chats);
     } catch (error: any) {
-        const status = error.message.startsWith('Unauthorized') ? 401 : 500;
-        return NextResponse.json({ error: 'Error fetching chats' }, { status });
+        const status = error.message.startsWith("Unauthorized") ? 401 : 500;
+        return NextResponse.json({ error: "Error fetching chats" }, { status });
     }
 }
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
         }
-        const status = error.message === 'User not found' ? 404 : 500;
+        const status = error.message === "User not found" ? 404 : 500;
         return NextResponse.json({ error: error.message }, { status });
     }
 }

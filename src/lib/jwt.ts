@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import { headers } from 'next/headers';
+import jwt from "jsonwebtoken";
+import { headers } from "next/headers";
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
@@ -14,7 +14,7 @@ export const getUserIdFromHeader =  async () => {
     const headersList = await headers();
     const authHeader = headersList.get("authorization");
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         throw new Error("Unauthorized: No token provided");
     }
 

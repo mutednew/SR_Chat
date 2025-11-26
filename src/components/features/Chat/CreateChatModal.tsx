@@ -1,5 +1,5 @@
-'use client';
-import { Modal, Input } from 'antd';
+"use client";
+import { Modal, Input } from "antd";
 
 interface Props {
     open: boolean;
@@ -13,14 +13,14 @@ interface Props {
 export default function CreateChatModal({ open, onCancel, onOk, confirmLoading, email, setEmail }: Props) {
     return (
         <Modal
-            title="Новый чат"
+            title="New chat"
             open={open}
             onOk={onOk}
             onCancel={onCancel}
             confirmLoading={confirmLoading}
         >
             <Input
-                placeholder="Введите Email"
+                placeholder="Enter Email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
             />

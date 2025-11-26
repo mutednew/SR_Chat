@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { Layout, Button, App, Spin } from 'antd';
-import { LogoutOutlined, PlusOutlined } from '@ant-design/icons';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { logout } from '@/store/features/authSlice';
-import { useRouter } from 'next/navigation';
-import { useCreateChatMutation } from '@/store/services/chatsApi';
+import React, { useEffect, useState } from "react";
+import { Layout, Button, App, Spin } from "antd";
+import { LogoutOutlined, PlusOutlined } from "@ant-design/icons";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { logout } from "@/store/features/authSlice";
+import { useRouter } from "next/navigation";
+import { useCreateChatMutation } from "@/store/services/chatsApi";
 import ChatList from "@/components/features/Chat/ChatList";
 import { socket } from "@/lib/socket";
 import { setOnlineUsers } from "@/store/features/onlineSlice";
@@ -15,7 +15,7 @@ import dynamic from "next/dynamic";
 const { Sider, Content } = Layout;
 
 const CreateChatModal = dynamic(
-    () => import('@/components/features/Chat/CreateChatModal'),
+    () => import("@/components/features/Chat/CreateChatModal"),
     {
         ssr: false,
         loading: () => null
@@ -29,7 +29,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     const { token, user } = useAppSelector((state) => state.auth);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [emailToInvite, setEmailToInvite] = useState('');
+    const [emailToInvite, setEmailToInvite] = useState("");
     const [createChat, { isLoading: isCreating }] = useCreateChatMutation();
 
     const [mounted, setMounted] = useState(false);
@@ -43,12 +43,12 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             socket.auth = { token };
             socket.connect();
 
-            socket.on('online_users', (onlineIds: string[]) => {
+            socket.on("online_users", (onlineIds: string[]) => {
                 dispatch(setOnlineUsers(onlineIds));
             });
 
             return () => {
-                socket.off('online_users');
+                socket.off("online_users");
                 socket.disconnect();
             };
         }
@@ -56,13 +56,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
 
     useEffect(() => {
         if (mounted && !token) {
-            router.push('/login');
+            router.push("/login");
         }
     }, [token, router, mounted]);
 
     const handleLogout = () => {
         dispatch(logout());
-        router.push('/login');
+        router.push("/login");
     };
 
     const handleCreateChat = async () => {
@@ -71,11 +71,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             await createChat({
                 email: emailToInvite,
             }).unwrap();
-            message.success('Чат успешно создан!');
+            message.success("Chat successfully created!");
             setIsModalOpen(false);
             setEmailToInvite('');
         } catch (e: any) {
-            const errorMsg = e.data?.error || 'Ошибка при создании чата';
+            const errorMsg = e.data?.error || "Error creating chat";
             message.error(errorMsg);
         }
     };

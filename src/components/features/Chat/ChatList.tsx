@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { List, Avatar, Badge, Spin } from 'antd';
-import { useGetChatsQuery } from '@/store/services/chatsApi';
-import { UserOutlined } from '@ant-design/icons';
-import { useRouter, useParams } from 'next/navigation';
+import React, { memo, useEffect } from "react";
+import { List, Avatar, Badge, Spin } from "antd";
+import { useGetChatsQuery } from "@/store/services/chatsApi";
+import { UserOutlined } from "@ant-design/icons";
+import { useRouter, useParams } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
-import { socket } from '@/lib/socket';
+import { socket } from "@/lib/socket";
 
-export default function ChatList() {
+const ChatList = () => {
     const currentUser = useAppSelector((state) => state.auth.user);
     const onlineUsers = useAppSelector((state) => state.online.users);
 
@@ -21,7 +21,7 @@ export default function ChatList() {
     useEffect(() => {
         if (chats) {
             chats.forEach((chat) => {
-                socket.emit('join_chat', chat.id);
+                socket.emit("join_chat", chat.id);
             });
         }
     }, [chats]);
@@ -45,7 +45,7 @@ export default function ChatList() {
                     const isActive = params.id === chat.id;
 
                     const isMyLastMessage = lastMessageObj?.senderId === CURRENT_USER_ID;
-                    const messageText = lastMessageObj?.content || "Нет сообщений";
+                    const messageText = lastMessageObj?.content || "No message";
 
                     const isOnline = otherUser ? onlineUsers.includes(otherUser.id) : false;
 
@@ -54,7 +54,7 @@ export default function ChatList() {
                             onClick={() => router.push(`/${chat.id}`)}
                             className={`
                                 cursor-pointer border-b border-gray-100 p-4 transition-colors duration-200
-                                ${isActive ? 'bg-blue-50 border-r-4 border-r-blue-500' : 'hover:bg-gray-50 border-r-4 border-r-transparent'}
+                                ${isActive ? "bg-blue-50 border-r-4 border-r-blue-500" : "hover:bg-gray-50 border-r-4 border-r-transparent"}
                             `}
                         >
                             <div className="flex items-center gap-3">
@@ -63,7 +63,7 @@ export default function ChatList() {
                                         dot={true}
                                         color={isOnline ? "#52c41a" : "#d9d9d9"}
                                         offset={[-4, 36]}
-                                        style={{ width: 10, height: 10, border: '2px solid white' }}
+                                        style={{ width: 10, height: 10, border: "2px solid white" }}
                                     >
                                         <Avatar
                                             src={otherUser?.avatar}
@@ -77,16 +77,16 @@ export default function ChatList() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline mb-1">
                                         <h4 className="text-sm font-semibold text-gray-900 truncate pr-2">
-                                            {chat.name || otherUser?.name || 'User'}
+                                            {chat.name || otherUser?.name || "User"}
                                         </h4>
                                         <span className="text-xs text-gray-400 whitespace-nowrap">
-                                            {new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(chat.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                         </span>
                                     </div>
 
                                     <div className="text-sm truncate m-0 flex items-center gap-1">
                                         {isMyLastMessage && (
-                                            <span className="text-blue-500 font-medium">Вы:</span>
+                                            <span className="text-blue-500 font-medium">you:</span>
                                         )}
                                         <span className={isMyLastMessage ? "text-gray-500" : "text-gray-800 font-medium"}>
                                             {messageText}
@@ -102,3 +102,5 @@ export default function ChatList() {
         </div>
     );
 }
+
+export default memo(ChatList);

@@ -1,6 +1,6 @@
-import React from 'react';
-import { Avatar, Badge } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import React from "react";
+import { Avatar, Badge } from "antd";
+import { UserOutlined } from "@ant-design/icons";
 
 interface ChatHeaderProps {
     name?: string;
