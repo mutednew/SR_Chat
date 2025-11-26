@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import { IMessage } from '@/types/messageType'; // Или интерфейс из API
+import { IMessage } from '@/types/messageType';
 
 interface MessageBubbleProps {
     msg: IMessage;
@@ -38,3 +38,5 @@ export const MessageBubble = memo(({ msg, isMe }: MessageBubbleProps) => {
         </div>
     );
 });
+
+MessageBubble.displayName = 'MessageBubble';

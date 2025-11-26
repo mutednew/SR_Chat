@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IUser } from "@/types/userType";
+import { PublicUser } from "@/types/userType";
 
 interface AuthState {
-    user: IUser | null;
+    user: PublicUser | null;
     token: string | null;
 }
 
@@ -15,11 +15,11 @@ export const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
-        setCredentials: (state, action: PayloadAction<{ user: IUser; token: string }>) => {
+        setCredentials: (state, action: PayloadAction<{ user: PublicUser; token: string }>) => {
             const { user, token } = action.payload;
             state.user = user;
             state.token = token;
-            // Сохраняем в localStorage
+
             localStorage.setItem('chat_user', JSON.stringify(user));
             localStorage.setItem('chat_token', token);
         },

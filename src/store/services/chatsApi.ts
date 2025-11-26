@@ -5,7 +5,6 @@ import { IMessage } from "@/types/messageType";
 
 export const chatsApi = api.injectEndpoints({
     endpoints: (builder) => ({
-
         getChats: builder.query<IChat[], void>({
             query: () => "/chats",
             providesTags: ["Chat"],
@@ -118,6 +117,31 @@ export const chatsApi = api.injectEndpoints({
             invalidatesTags: ["Chat"],
         }),
 
+        deleteChat: builder.mutation<void, string>({
+            query: (chatId) => ({
+                url: `/chats?id=${chatId}`,
+                method: "DELETE"
+            }),
+            invalidatesTags: ["Chat"],
+
+            async onQueryStarted(chatId, { dispatch, queryFulfilled }) {
+                const patchResult = dispatch(
+                    chatsApi.util.updateQueryData("getChats", undefined, (draft) => {
+                        const index = draft.findIndex((c) => c.id === chatId);
+
+                        if (index !== -1) {
+                            draft.splice(index, 1);
+                        }
+                    })
+                );
+
+                try {
+                    await queryFulfilled;
+                } catch {
+                    patchResult.undo();
+                }
+            }
+        })
     }),
 });
 
@@ -126,5 +150,6 @@ export const {
     useGetMessagesQuery,
     useSendMessageMutation,
     useCreateChatMutation,
-    useLazyGetMoreMessagesQuery
+    useLazyGetMoreMessagesQuery,
+    useDeleteChatMutation,
 } = chatsApi;

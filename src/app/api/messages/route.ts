@@ -25,12 +25,16 @@ export async function POST(req: Request) {
 
         const newMessage = await messageService.sendMessage(chatId, currentUserId, content);
         return NextResponse.json(newMessage);
-    } catch (err: any) {
+    } catch (err: unknown) {
         if (err instanceof z.ZodError) {
             return NextResponse.json({ error: err.issues[0].message }, { status: 400 });
         }
 
-        const status = err.message.startsWith("Unauthorized") ? 401 : 500;
-        return NextResponse.json({ error: err.message }, { status });
+        if (err instanceof Error) {
+            const status = err.message.startsWith('Unauthorized') ? 401 : 500;
+            return NextResponse.json({ error: err.message }, { status });
+        }
+
+        return NextResponse.json({ error: 'Unknown error' }, { status: 500 })
     }
 }
