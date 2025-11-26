@@ -5,3 +5,5 @@ export interface IUser {
     password: string;
     avatar?: string;
 }
+
+export type PublicUser = Omit<IUser, 'password'>;

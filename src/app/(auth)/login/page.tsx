@@ -1,55 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
-import { Form, Input, Button, Card, Typography, Tabs, App } from "antd";
-import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/store/hooks";
-import { setCredentials } from "@/store/features/authSlice";
+import React, { useState } from 'react';
+import { Form, Input, Button, Card, Typography, message, Tabs } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '@/store/hooks';
+import { setCredentials } from '@/store/features/authSlice';
+import { ApiErrorResponse, AuthResponse, LoginValues, RegisterValues } from "@/types/authType";
 
 const { Title } = Typography;
 
-interface RegisterFormValues {
-    email: string;
-    password: string;
-    name: string;
-}
-type FormValues = RegisterFormValues | LoginFormValues;
+type FormValues = LoginValues | RegisterValues;
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const dispatch = useAppDispatch();
     const router = useRouter();
 
-    const { message: messageApi } = App.useApp();
-
-    const [loginForm] = Form.useForm();
-    const [registerForm] = Form.useForm();
-
     const handleSubmit = async (values: FormValues, isRegister: boolean) => {
         setLoading(true);
-        isRegister ? registerForm.setFields([]) : loginForm.setFields([]);
-
         try {
-            const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
+            const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
 
             const res = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(values),
             });
 
-            const data = await res.json();
+            const data = (await res.json()) as AuthResponse | ApiErrorResponse;
 
-            if (!res.ok) throw new Error(data.error || "Something went wrong");
+            if (!res.ok) {
+                const errorData = data as ApiErrorResponse;
+                throw new Error(errorData.error || 'Something went wrong');
+            }
 
-            dispatch(setCredentials({ user: data.user, token: data.token }));
+            const successData = data as AuthResponse;
 
-            messageApi.success(isRegister ? "Registered successfully!" : 'Welcome back!');
+            dispatch(setCredentials({ user: successData.user, token: successData.token }));
+            message.success(isRegister ? 'Registered successfully!' : 'Welcome back!');
 
-            router.push("/");
-        } catch (error: any) {
-            messageApi.error(error.message);
+            router.push('/');
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                message.error(error.message);
+            } else {
+                message.error('An unknown error occurred');
+            }
         } finally {
             setLoading(false);
         }
@@ -63,21 +60,21 @@ export default function LoginPage() {
                 </div>
 
                 <Tabs
-                    defaultActiveKey="2"
+                    defaultActiveKey="1"
                     items={[
                         {
-                            key: "1",
-                            label: "Login",
+                            key: '1',
+                            label: 'Login',
                             children: (
                                 <Form
-                                    form={loginForm}
-                                    onFinish={(vals) => handleSubmit(vals, false)}
+                                    // Явно указываем тип значений для onFinish
+                                    onFinish={(vals: LoginValues) => handleSubmit(vals, false)}
                                     layout="vertical"
                                 >
-                                    <Form.Item name="email" rules={[{ required: true, type: "email", message: "Enter email!" }]}>
+                                    <Form.Item name="email" rules={[{ required: true, type: 'email' }]}>
                                         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
                                     </Form.Item>
-                                    <Form.Item name="password" rules={[{ required: true, message: "Enter password!" }]}>
+                                    <Form.Item name="password" rules={[{ required: true }]}>
                                         <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
                                     </Form.Item>
                                     <Button type="primary" htmlType="submit" block size="large" loading={loading}>
@@ -87,21 +84,21 @@ export default function LoginPage() {
                             ),
                         },
                         {
-                            key: "2",
-                            label: "Register",
+                            key: '2',
+                            label: 'Register',
                             children: (
                                 <Form
-                                    form={registerForm}
-                                    onFinish={(vals) => handleSubmit(vals, true)}
+                                    // Явно указываем тип значений для onFinish
+                                    onFinish={(vals: RegisterValues) => handleSubmit(vals, true)}
                                     layout="vertical"
                                 >
-                                    <Form.Item name="name" rules={[{ required: true, message: "Enter name!" }]}>
+                                    <Form.Item name="name" rules={[{ required: true }]}>
                                         <Input prefix={<UserOutlined />} placeholder="Name" size="large" />
                                     </Form.Item>
-                                    <Form.Item name="email" rules={[{ required: true, type: "email", message: "Enter email!" }]}>
+                                    <Form.Item name="email" rules={[{ required: true, type: 'email' }]}>
                                         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
                                     </Form.Item>
-                                    <Form.Item name="password" rules={[{ required: true, message: "Enter password!" }]}>
+                                    <Form.Item name="password" rules={[{ required: true }]}>
                                         <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
                                     </Form.Item>
                                     <Button type="primary" htmlType="submit" block size="large" loading={loading}>

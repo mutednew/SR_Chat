@@ -56,5 +56,28 @@ export const chatService = {
             },
             include: { users: true }
         });
+    },
+
+    async deleteChat(chatId: string, currentUserId: string) {
+        const chat = await prisma.chat.findUnique({
+            where: { id: chatId },
+            include: { users: true }
+        });
+
+        if (!chat) throw new Error("Chat not found");
+
+        const isMember = chat.users.find((u) => u.id === currentUserId);
+
+        if (!isMember) throw new Error("Cannot delete chat");
+
+        await prisma.$transaction([
+            prisma.message.deleteMany({ where: { chatId } }),
+
+            prisma.chat.delete({
+                where: { id: chatId },
+            }),
+        ]);
+
+        return { success: true, id: chatId };
     }
 };

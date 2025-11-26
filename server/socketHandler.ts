@@ -1,6 +1,12 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 
+declare module "socket.io" {
+    interface Socket {
+        userId: string;
+    }
+}
+
 const onlineUsers = new Map<string, string>();
 
 export const setupSocketHandlers = (io: Server) => {
@@ -15,16 +21,16 @@ export const setupSocketHandlers = (io: Server) => {
             const secret = process.env.JWT_SECRET;
             if (!secret) return next(new Error("Server Error: No JWT_SECRET"));
 
-            const decoded = jwt.verify(secret, secret) as { userId: string };
-            (socket as any).userId = decoded.userId;
+            const decoded = jwt.verify(token, secret) as { userId: string };
+            (socket as Socket).userId = decoded.userId;
             next();
         } catch (err) {
             return next(new Error("Authentication error: Invalid token"));
         }
     });
 
-    io.on("connection", (socket) => {
-        const userId = (socket as any).userId;
+    io.on("connection", (socket: Socket) => {
+        const userId = socket.userId;
 
         console.log(`User connected (Auth): ${userId}`);
         onlineUsers.set(socket.id, userId);
